@@ -25,4 +25,7 @@ jobs:
       run: go build ./cmd/webserver
 
     - name: Run tests
+      env:
+        GHO_CLIENT_ID: ${{secrets.GHO_CLIENT_ID}}
+        GHO_CLIENT_SECRET: ${{secrets.GHO_CLIENT_SECRET}}
       run: go test ./pkg/webserver -v
