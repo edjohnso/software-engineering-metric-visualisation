@@ -1,4 +1,5 @@
 TARGET=webserver
+SECRETS=secrets.env
 
 .PHONY: all
 all: build check
@@ -14,7 +15,7 @@ check:
 .PHONY: run
 run: all
 	@echo -e "\n# Running $(TARGET)..."
-	@./bin/$(TARGET)
+	@env $$(cat $(SECRETS) | xargs) ./bin/$(TARGET)
 
 .PHONY: clean
 clean:
@@ -26,7 +27,7 @@ docker:
 	@echo -e "\n# Building docker image..."
 	docker build . -t torvalds_number:multistage
 	@echo -e "\n# Deploying docker image..."
-	docker run --rm -p 80:80 torvalds_number:multistage
+	docker run --env-file $(SECRETS) --rm -p 80:80 torvalds_number:multistage
 
 bin/%: cmd/% pkg/% Makefile
 	@echo -e "\n# Building $@..."
