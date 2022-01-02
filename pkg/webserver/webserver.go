@@ -27,7 +27,7 @@ func Start(address, templates string) error {
 	if err := srv.loadTemplates(templates); err != nil { return err }
 	if err := srv.setupHTTPServer(address); err != nil { return err }
 
-	sigChan := make(chan os.Signal)
+	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 	go func() {
 		<-sigChan
