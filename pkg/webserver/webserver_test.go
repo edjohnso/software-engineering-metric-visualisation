@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 	"fmt"
+	"github.com/gorilla/mux"
 )
 
 const loginHTML = `<p>login page!</p>`
@@ -117,6 +118,21 @@ func TestExecuteTemplate(t *testing.T) {
 			assertResponse(t, responseRecorder, testCase.status, testCase.body)
 		})
 	}
+}
+
+func TestUnauthHandler(t *testing.T) {
+	srv, err := setupSimpleServer()
+	if err != nil {
+		t.Fatalf("Unable to setup HTTP test server: %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	responseRecorder := httptest.NewRecorder()
+	router := mux.NewRouter()
+	router.HandleFunc("/", srv.unauthHandler)
+	router.ServeHTTP(responseRecorder, request)
+
+	assertResponse(t, responseRecorder, http.StatusOK, loginHTML)
 }
 
 func setupSimpleServer() (server, error) {
