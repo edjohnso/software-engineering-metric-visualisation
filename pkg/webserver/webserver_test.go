@@ -198,6 +198,26 @@ func TestHandleUserRequest(t *testing.T) {
 	}
 }
 
+func TestErrorResponse(t *testing.T) {
+	srv, err := setupSimpleServer()
+	if err != nil {
+		t.Fatalf("Unable to setup HTTP test server: %v", err)
+	}
+
+	testCases := []struct { name string; status int } {
+		{ "200 OK", http.StatusOK },
+		{ "404 Not Found", http.StatusNotFound },
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			responseRecorder := httptest.NewRecorder()
+			srv.errorResponse(responseRecorder, testCase.status)
+			assertResponse(t, responseRecorder, testCase.status, errorHTML)
+		})
+	}
+}
+
 func setupSimpleServer() (*server, error) {
 	var srv server
 	err := srv.loadSecrets()
