@@ -73,7 +73,7 @@ func (srv *server) userHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *server) unauthHandler(w http.ResponseWriter, r *http.Request) {
-
+	srv.executeTemplate(w, "login.html", struct { ClientID string }{ srv.clientID })
 }
 
 func (srv *server) executeTemplate(w http.ResponseWriter, name string, data interface{}) {
