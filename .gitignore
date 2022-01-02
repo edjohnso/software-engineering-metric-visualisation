@@ -1,2 +1,13 @@
-bin
-secrets.env
+*
+!/.gitignore
+!/.github
+!/.dockerignore
+!cmd
+!pkg
+!web
+!Dockerfile
+!README.md
+!Makefile
+!LICENSE
+!go.sum
+!go.mod
