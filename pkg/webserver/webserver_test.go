@@ -125,7 +125,7 @@ func TestExecuteTemplate(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 			srv.executeTemplate(responseRecorder, testCase.templateName, nil);
-			assertResponse(t, responseRecorder, testCase.status, testCase.body)
+			assertResponseRecorder(t, responseRecorder, testCase.status, testCase.body)
 		})
 	}
 }
@@ -142,7 +142,7 @@ func TestUnauthHandler(t *testing.T) {
 	router.HandleFunc("/", srv.unauthHandler)
 	router.ServeHTTP(responseRecorder, request)
 
-	assertResponse(t, responseRecorder, http.StatusOK, loginHTML)
+	assertResponseRecorder(t, responseRecorder, http.StatusOK, loginHTML)
 }
 
 func TestOAuthHandler(t *testing.T) {
@@ -170,7 +170,7 @@ func TestOAuthHandler(t *testing.T) {
 			var expectedBody string
 			if testCase.ok { expectedStatus = http.StatusOK } else { expectedStatus = http.StatusUnauthorized }
 			if testCase.ok { expectedBody = userHTML } else { expectedBody = loginHTML }
-			assertResponse(t, responseRecorder, expectedStatus, expectedBody)
+			assertResponseRecorder(t, responseRecorder, expectedStatus, expectedBody)
 		})
 	}
 }
@@ -203,7 +203,7 @@ func TestHandleUserRequest(t *testing.T) {
 			var expectedBody string
 			if testCase.ok { expectedStatus = http.StatusOK } else { expectedStatus = http.StatusUnauthorized }
 			if testCase.ok { expectedBody = userHTML } else { expectedBody = loginHTML }
-			assertResponse(t, responseRecorder, expectedStatus, expectedBody)
+			assertResponseRecorder(t, responseRecorder, expectedStatus, expectedBody)
 		})
 	}
 }
@@ -223,7 +223,7 @@ func TestErrorResponse(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 			srv.errorResponse(responseRecorder, testCase.status)
-			assertResponse(t, responseRecorder, testCase.status, errorHTML)
+			assertResponseRecorder(t, responseRecorder, testCase.status, errorHTML)
 		})
 	}
 }
@@ -238,7 +238,7 @@ func setupSimpleServer() (*server, error) {
 	return &srv, nil
 }
 
-func assertResponse(t *testing.T, rr *httptest.ResponseRecorder, status int, body string) {
+func assertResponseRecorder(t *testing.T, rr *httptest.ResponseRecorder, status int, body string) {
 	if rr.Code != status {
 		t.Errorf("Expected status: %d - Actual status: %d", status, rr.Code)
 	}
