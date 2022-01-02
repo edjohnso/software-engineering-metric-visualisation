@@ -135,6 +135,36 @@ func TestUnauthHandler(t *testing.T) {
 	assertResponse(t, responseRecorder, http.StatusOK, loginHTML)
 }
 
+func TestOAuthHandler(t *testing.T) {
+	srv, err := setupSimpleServer()
+	if err != nil {
+		t.Fatalf("Unable to setup HTTP test server: %v", err)
+	}
+
+	// FIXME: I don't think it's possible to test a successful OAuth code exchange
+	//        so this is just testing if it can handle exchange failure
+	testCases := []struct { name string; code string; ok bool } {
+		{ "Invalid code", "foo", false },
+		//{ "Valid code", "TODO", true },
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "/?code=" + testCase.code, nil)
+			router := mux.NewRouter()
+			router.HandleFunc("/", srv.oauthHandler).Queries("code", "{code}")
+			router.ServeHTTP(responseRecorder, request)
+
+			var expectedStatus int
+			var expectedBody string
+			if testCase.ok { expectedStatus = http.StatusOK } else { expectedStatus = http.StatusUnauthorized }
+			if testCase.ok { expectedBody = userHTML } else { expectedBody = loginHTML }
+			assertResponse(t, responseRecorder, expectedStatus, expectedBody)
+		})
+	}
+}
+
 func setupSimpleServer() (server, error) {
 	var srv server
 	err := srv.loadSecrets()
