@@ -22,7 +22,8 @@ func TestLoadSecrets(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Setenv("GHO_CLIENT_ID", testCase.clientID)
 			t.Setenv("GHO_CLIENT_SECRET", testCase.clientSecret)
-			if _, _, err := loadSecrets(); (err != nil) != testCase.errorExpected {
+			var srv server
+			if err := srv.loadSecrets(); (err != nil) != testCase.errorExpected {
 				t.Errorf("Expected an error: %t - Actual error: %v", testCase.errorExpected, err)
 			}
 		})
@@ -45,7 +46,8 @@ func TestLoadTemplates(t *testing.T) {
 					t.Fatalf("Unable to create temp file: %v", err)
 				}
 			}
-			if _, err := loadTemplates(filepath.Join(dir, "*")); (err != nil) != testCase.errorExpected {
+			var srv server
+			if err := srv.loadTemplates(filepath.Join(dir, "*")); (err != nil) != testCase.errorExpected {
 				t.Errorf("Expected an error: %t - Actual error: %v", testCase.errorExpected, err)
 			}
 		})
@@ -53,7 +55,8 @@ func TestLoadTemplates(t *testing.T) {
 }
 
 func TestSetupHTTPServer(t *testing.T) {
-	if _, err := setupHTTPServer(); err != nil {
+	var srv server
+	if err := srv.setupHTTPServer(); err != nil {
 		t.Errorf("Failed to setup HTTP server: %v", err)
 	}
 }
