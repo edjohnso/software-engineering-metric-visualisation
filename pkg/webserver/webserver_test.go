@@ -2,8 +2,11 @@ package webserver
 
 import (
 	"testing"
+	"net/http/httptest"
 	"net/http"
+	"html/template"
 	"path/filepath"
+	"strings"
 	"os"
 	"syscall"
 	"time"
@@ -93,5 +96,44 @@ func TestSetupHTTPServer(t *testing.T) {
 	}
 	if err := srv.setupHTTPServer(":8080"); err != nil {
 		t.Errorf("Unexpected error when setting up HTTP server: %v", err)
+	}
+}
+
+func TestExecuteTemplate(t *testing.T) {
+	srv, err := setupSimpleServer()
+	if err != nil {
+		t.Fatalf("Unable to setup HTTP test server: %v", err)
+	}
+
+	testCases := []struct { name string; templateName string; status int; body string } {
+		{ "Execute login.html", "login.html", http.StatusOK, loginHTML },
+		{ "Execute foo", "foo", http.StatusInternalServerError, errorHTML },
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			responseRecorder := httptest.NewRecorder()
+			srv.executeTemplate(responseRecorder, testCase.templateName, nil);
+			assertResponse(t, responseRecorder, testCase.status, testCase.body)
+		})
+	}
+}
+
+func setupSimpleServer() (server, error) {
+	var srv server
+	err := srv.loadSecrets()
+	if err != nil { return srv, err }
+	if srv.templates, err = template.New("login.html").Parse(loginHTML); err != nil { return srv, err }
+	if srv.templates, err = srv.templates.New("user.html").Parse(userHTML); err != nil { return srv, err }
+	if srv.templates, err = srv.templates.New("error.html").Parse(errorHTML); err != nil { return srv, err }
+	return srv, nil
+}
+
+func assertResponse(t *testing.T, rr *httptest.ResponseRecorder, status int, body string) {
+	if rr.Code != status {
+		t.Errorf("Expected status: %d - Actual status: %d", status, rr.Code)
+	}
+	if strings.TrimSpace(rr.Body.String()) != body {
+		t.Errorf("Expected response: %s - Actual response: %s", body, rr.Body)
 	}
 }
