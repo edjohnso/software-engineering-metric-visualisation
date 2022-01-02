@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"os/signal"
+	"context"
 	"errors"
 	"github.com/gorilla/mux"
 )
@@ -16,8 +18,22 @@ type server struct {
 	clientSecret string
 }
 
-func Start() error {
-	return errors.New("Not implemented!")
+func Start(address, templates string) error {
+	var srv server
+	if err := srv.loadSecrets(); err != nil { return err }
+	if err := srv.loadTemplates(templates); err != nil { return err }
+	if err := srv.setupHTTPServer(address); err != nil { return err }
+
+	sigChan := make(chan os.Signal)
+	signal.Notify(sigChan, os.Interrupt)
+	go func() {
+		<-sigChan
+		srv.http.Shutdown(context.Background())
+		log.Printf("Server shutdown")
+	}()
+
+	log.Printf("Server is up and listening at %s", address)
+	return srv.http.ListenAndServe()
 }
 
 func (srv *server) loadSecrets() error {

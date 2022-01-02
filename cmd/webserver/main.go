@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	log.Fatal(webserver.Start())
+	log.Fatal(webserver.Start(":8080", "./web/templates/*.html"))
 }
