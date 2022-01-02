@@ -36,7 +36,11 @@ func Start(address, templates string) error {
 	}()
 
 	log.Printf("Server is up and listening at %s", address)
-	return srv.http.ListenAndServe()
+	if err := srv.http.ListenAndServe(); err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
 }
 
 func (srv *server) loadSecrets() error {
