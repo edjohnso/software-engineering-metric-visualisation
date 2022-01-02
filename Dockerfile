@@ -1,5 +1,8 @@
 # Build
 FROM golang:latest AS build
+ARG GHO_CLIENT_ID
+ARG GHO_CLIENT_SECRET
+ARG GHO_PAT
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
@@ -11,6 +14,9 @@ RUN go test -cover ./pkg/webserver
 
 # Deploy
 FROM scratch
+ARG GHO_CLIENT_ID
+ARG GHO_CLIENT_SECRET
+ENV GHO_CLIENT_ID=$GHO_CLIENT_ID GHO_CLIENT_SECRET=$GHO_CLIENT_SECRET
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /build/webserver .
 COPY web web

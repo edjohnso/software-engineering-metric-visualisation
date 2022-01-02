@@ -1,5 +1,8 @@
 TARGET=webserver
-SECRETS=secrets.env
+
+export GHO_CLIENT_ID
+export GHO_CLIENT_SECRET
+export GHO_PAT
 
 .PHONY: all
 all: build check
@@ -10,14 +13,14 @@ build: bin/$(TARGET)
 .PHONY: check
 check:
 	@echo -e "\n# Running go vet..."
-	@go vet ./cmd/$(TARGET)
+	go vet ./cmd/$(TARGET)
 	@echo -e "\n# Running unit tests..."
-	@env $$(cat $(SECRETS) | xargs) go test -cover ./pkg/$(TARGET)
+	go test -cover ./pkg/$(TARGET)
 
 .PHONY: run
 run: all
 	@echo -e "\n# Running $(TARGET)..."
-	@env $$(cat $(SECRETS) | xargs) ./bin/$(TARGET)
+	./bin/$(TARGET)
 
 .PHONY: clean
 clean:
@@ -27,9 +30,9 @@ clean:
 .PHONY: docker
 docker:
 	@echo -e "\n# Building docker image..."
-	docker build . -t torvalds_number:multistage
+	docker build . -t torvalds_number:multistage --build-arg GHO_CLIENT_ID --build-arg GHO_CLIENT_SECRET --build-arg GHO_PAT
 	@echo -e "\n# Deploying docker image..."
-	docker run --env-file $(SECRETS) --rm -p 80:80 torvalds_number:multistage
+	docker run --rm -p 80:80 torvalds_number:multistage -e GHO_CLIENT_ID -e GHO_CLIENT_SECRET -e GHO_PAT
 
 bin/%: cmd/% pkg/% Makefile
 	@echo -e "\n# Building $@..."
