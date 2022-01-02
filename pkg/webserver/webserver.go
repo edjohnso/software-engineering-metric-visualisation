@@ -19,6 +19,7 @@ type server struct {
 }
 
 func Start(address, templates string) error {
+	log.Printf("Setting up server...")
 	var srv server
 	if err := srv.loadSecrets(); err != nil { return err }
 	if err := srv.loadTemplates(templates); err != nil { return err }
