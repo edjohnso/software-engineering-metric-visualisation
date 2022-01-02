@@ -119,7 +119,41 @@ func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *server) userHandler(w http.ResponseWriter, r *http.Request) {
+	token := mux.Vars(r)["token"]
 
+	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
+	if err != nil {
+		log.Printf("Unable to create exchange request: %v", err)
+		srv.errorResponse(w, http.StatusInternalServerError)
+		return
+	}
+	req.Header.Add("Authorization", "token " + token)
+
+	var client http.Client
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Unable to make API request: %v", err)
+		srv.errorResponse(w, http.StatusBadGateway)
+		return
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Printf("Invalid access token provided to GitHub API")
+		w.WriteHeader(http.StatusUnauthorized)
+		srv.unauthHandler(w, r)
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Unable to read API response body: %v", err)
+		srv.errorResponse(w, http.StatusInternalServerError)
+		return
+	}
+
+	// TODO: decode JSON body
+
+	srv.executeTemplate(w, "user.html", body)
 }
 
 func (srv *server) unauthHandler(w http.ResponseWriter, r *http.Request) {
