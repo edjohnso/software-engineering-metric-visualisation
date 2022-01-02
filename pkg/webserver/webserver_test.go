@@ -165,6 +165,39 @@ func TestOAuthHandler(t *testing.T) {
 	}
 }
 
+func TestHandleUserRequest(t *testing.T) {
+	srv, err := setupSimpleServer()
+	if err != nil {
+		t.Fatalf("Unable to setup HTTP test server: %v", err)
+	}
+
+	pat := os.Getenv("GHO_PAT")
+	if pat == "" {
+		t.Fatalf("GHO_PAT environment variable not set")
+	}
+
+	testCases := []struct { name string; token string; ok bool } {
+		{ "Invalid access token", "", false },
+		{ "Valid access token (PAT)", pat, true },
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			responseRecorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "/?u=" + testCase.token, nil)
+			router := mux.NewRouter()
+			router.HandleFunc("/", srv.userHandler).Queries("u", "{token}")
+			router.ServeHTTP(responseRecorder, request)
+
+			var expectedStatus int
+			var expectedBody string
+			if testCase.ok { expectedStatus = http.StatusOK } else { expectedStatus = http.StatusUnauthorized }
+			if testCase.ok { expectedBody = userHTML } else { expectedBody = loginHTML }
+			assertResponse(t, responseRecorder, expectedStatus, expectedBody)
+		})
+	}
+}
+
 func setupSimpleServer() (server, error) {
 	var srv server
 	err := srv.loadSecrets()
