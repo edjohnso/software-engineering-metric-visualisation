@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"html/template"
 	"log"
-	"io"
 	"os"
 	"os/signal"
 	"context"
@@ -71,68 +70,40 @@ func (srv *server) setupHTTPServer(address string) error {
 }
 
 func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
-	code := mux.Vars(r)["code"]
-
-	resp, err := request(
+	resp, body := requestAndParse(
 		"", http.MethodPost,
 		"https://github.com/login/oauth/access_token" +
 			"?client_id=" + srv.clientID +
 			"&client_secret=" + srv.clientSecret +
-			"&code=" + code)
-	if err != nil {
-		log.Printf("Unable to exchange authentication code for access token: %v", err)
-		srv.errorResponse(w, http.StatusBadGateway)
+			"&code=" + mux.Vars(r)["code"])
+	if (resp.StatusCode >= 400) {
+		srv.errorResponse(w, resp.StatusCode)
 		return
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Unable to read exchange response body: %v", err)
-		srv.errorResponse(w, http.StatusInternalServerError)
-		return
-	}
-
-	rq, err := url.ParseQuery(string(body))
+	rq, err := url.ParseQuery(body)
 	if err != nil {
 		log.Printf("Unable to parse exchange response body: %v", err)
 		srv.errorResponse(w, http.StatusInternalServerError)
-		return
-	}
-
-	if rq.Has("error") || !rq.Has("access_token") {
-		if rq.Has("error_description") {
-			log.Printf("Exchange failed: %s", rq.Get("error_description"))
-		} else {
-			log.Printf("Exchange failed for unknown reason")
-		}
+	} else if rq.Has("error") || !rq.Has("access_token") {
 		w.WriteHeader(http.StatusUnauthorized)
 		srv.unauthHandler(w, r)
-		return
+	} else {
+		http.Redirect(w, r, "/?u=" + rq.Get("access_token"), http.StatusSeeOther)
 	}
+}
 
 	http.Redirect(w, r, "/?u=" + rq.Get("access_token"), http.StatusSeeOther)
 }
 
 func (srv *server) userHandler(w http.ResponseWriter, r *http.Request) {
-
-	resp, err := request(mux.Vars(r)["token"], http.MethodGet, "https://api.github.com/user")
-	if err != nil {
-		log.Printf("Unable to make API request: %v", err)
-		srv.errorResponse(w, http.StatusBadGateway)
-		return
-	}
-
+	resp, body := requestAndParse(mux.Vars(r)["token"], http.MethodGet, "https://api.github.com/user")
 	if resp.StatusCode == http.StatusUnauthorized {
-		log.Printf("Invalid access token provided to GitHub API")
 		w.WriteHeader(http.StatusUnauthorized)
 		srv.unauthHandler(w, r)
 		return
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Unable to read API response body: %v", err)
-		srv.errorResponse(w, http.StatusInternalServerError)
+	} else if (resp.StatusCode >= 400) {
+		srv.errorResponse(w, resp.StatusCode)
 		return
 	}
 
