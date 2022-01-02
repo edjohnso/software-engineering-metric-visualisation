@@ -198,14 +198,14 @@ func TestHandleUserRequest(t *testing.T) {
 	}
 }
 
-func setupSimpleServer() (server, error) {
+func setupSimpleServer() (*server, error) {
 	var srv server
 	err := srv.loadSecrets()
-	if err != nil { return srv, err }
-	if srv.templates, err = template.New("login.html").Parse(loginHTML); err != nil { return srv, err }
-	if srv.templates, err = srv.templates.New("user.html").Parse(userHTML); err != nil { return srv, err }
-	if srv.templates, err = srv.templates.New("error.html").Parse(errorHTML); err != nil { return srv, err }
-	return srv, nil
+	if err != nil { return &srv, err }
+	if srv.templates, err = template.New("login.html").Parse(loginHTML); err != nil { return &srv, err }
+	if srv.templates, err = srv.templates.New("user.html").Parse(userHTML); err != nil { return &srv, err }
+	if srv.templates, err = srv.templates.New("error.html").Parse(errorHTML); err != nil { return &srv, err }
+	return &srv, nil
 }
 
 func assertResponse(t *testing.T, rr *httptest.ResponseRecorder, status int, body string) {
