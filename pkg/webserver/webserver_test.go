@@ -56,7 +56,10 @@ func TestLoadTemplates(t *testing.T) {
 
 func TestSetupHTTPServer(t *testing.T) {
 	var srv server
-	if err := srv.setupHTTPServer(); err != nil {
-		t.Errorf("Failed to setup HTTP server: %v", err)
+	if err := srv.setupHTTPServer("abc"); err != nil {
+		t.Errorf("Unexpected error when setting up HTTP server: %v", err)
+	}
+	if err := srv.setupHTTPServer(":8080"); err != nil {
+		t.Errorf("Unexpected error when setting up HTTP server: %v", err)
 	}
 }
