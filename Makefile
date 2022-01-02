@@ -1,4 +1,5 @@
 TARGET=webserver
+PORT=8080
 
 export GHO_CLIENT_ID
 export GHO_CLIENT_SECRET
@@ -20,7 +21,7 @@ check:
 .PHONY: run
 run: all
 	@echo -e "\n# Running $(TARGET)..."
-	./bin/$(TARGET)
+	./bin/$(TARGET) $(PORT) "./web/templates/*.html"
 
 .PHONY: clean
 clean:
@@ -32,7 +33,7 @@ docker:
 	@echo -e "\n# Building docker image..."
 	docker build . -t torvalds_number:multistage --build-arg GHO_CLIENT_ID --build-arg GHO_CLIENT_SECRET --build-arg GHO_PAT
 	@echo -e "\n# Deploying docker image..."
-	docker run --rm -p 80:80 torvalds_number:multistage -e GHO_CLIENT_ID -e GHO_CLIENT_SECRET -e GHO_PAT
+	docker run --rm -p $(PORT):80 torvalds_number:multistage -e GHO_CLIENT_ID -e GHO_CLIENT_SECRET -e GHO_PAT
 
 bin/%: cmd/% pkg/% Makefile
 	@echo -e "\n# Building $@..."

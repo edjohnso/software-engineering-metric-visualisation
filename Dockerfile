@@ -19,6 +19,6 @@ ARG GHO_CLIENT_SECRET
 ENV GHO_CLIENT_ID=$GHO_CLIENT_ID GHO_CLIENT_SECRET=$GHO_CLIENT_SECRET
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /build/webserver .
-COPY web web
+COPY web .
 EXPOSE 80
-ENTRYPOINT ["/webserver"]
+ENTRYPOINT ["/webserver", "80", "./templates/*.html"]
