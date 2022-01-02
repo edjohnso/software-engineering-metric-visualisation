@@ -37,13 +37,13 @@ func (srv *server) loadTemplates(pattern string) error {
 	return err
 }
 
-func (srv *server) setupHTTPServer() error {
+func (srv *server) setupHTTPServer(address string) error {
 	log.Printf("| Registering HTTP routes...")
 	r := mux.NewRouter()
 	r.HandleFunc("/", srv.oauthHandler).Queries("code", "{code}")
 	r.HandleFunc("/", srv.userHandler).Queries("u", "{token}")
 	r.HandleFunc("/", srv.unauthHandler)
-	srv.http = http.Server { Addr: ":http", Handler: r }
+	srv.http = http.Server { Addr: address, Handler: r }
 	return nil
 }
 
