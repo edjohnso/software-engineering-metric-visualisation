@@ -27,10 +27,11 @@ func TestStart(t *testing.T) {
 		}
 	}
 
-	testCases := []struct { name string; address string; pattern string; errorExpected bool } {
-		{ "Invalid address", "foo", "*.html", true },
-		{ "Missing templates", ":8080", "none", true },
-		{ "Valid", ":8080", "*.html", false },
+	testCases := []struct { name string; clearEnv bool; address string; pattern string; errorExpected bool } {
+		{ "Missing envvars",   true,  ":8080", "*.html", true },
+		{ "Invalid address",   false, "foo",   "*.html", true },
+		{ "Missing templates", false, ":8080", "none",   true },
+		{ "Valid",             false, ":8080", "*.html", false },
 	}
 
 	for _, testCase := range testCases {
@@ -45,6 +46,11 @@ func TestStart(t *testing.T) {
 					os.Exit(1)
 				}
 			}()
+
+			if testCase.clearEnv {
+				t.Setenv("GHO_CLIENT_ID", "")
+				t.Setenv("GHO_CLIENT_SECRET", "")
+			}
 
 			err := Start(testCase.address, filepath.Join(dir, testCase.pattern))
 			ok = true
