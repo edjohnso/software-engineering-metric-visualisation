@@ -105,11 +105,11 @@ func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rq.Has("error") || !rq.Has("access_token") {
-		msg := "Unknown"
 		if rq.Has("error_description") {
-			msg = rq.Get("error_description")
+			log.Printf("Exchange failed: %s", rq.Get("error_description"))
+		} else {
+			log.Printf("Exchange failed for unknown reason")
 		}
-		log.Printf("Exchange failed for the following reason: %s", msg)
 		w.WriteHeader(http.StatusUnauthorized)
 		srv.unauthHandler(w, r)
 		return
