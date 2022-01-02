@@ -2,8 +2,10 @@ package webserver
 
 import (
 	"net/http"
+	"net/url"
 	"html/template"
 	"log"
+	"io"
 	"os"
 	"os/signal"
 	"context"
@@ -65,7 +67,55 @@ func (srv *server) setupHTTPServer(address string) error {
 }
 
 func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
+	code := mux.Vars(r)["code"]
 
+	req, err := http.NewRequest(
+		http.MethodPost,
+		"https://github.com/login/oauth/access_token" +
+			"?client_id=" + srv.clientID +
+			"&client_secret=" + srv.clientSecret +
+			"&code=" + code,
+		nil)
+	if err != nil {
+		log.Printf("Unable to create exchange request: %v", err)
+		srv.errorResponse(w, http.StatusInternalServerError)
+		return
+	}
+
+	var client http.Client
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Unable to exchange authentication code for access token: %v", err)
+		srv.errorResponse(w, http.StatusBadGateway)
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Unable to read exchange response body: %v", err)
+		srv.errorResponse(w, http.StatusInternalServerError)
+		return
+	}
+
+	rq, err := url.ParseQuery(string(body))
+	if err != nil {
+		log.Printf("Unable to parse exchange response body: %v", err)
+		srv.errorResponse(w, http.StatusInternalServerError)
+		return
+	}
+
+	if rq.Has("error") || !rq.Has("access_token") {
+		msg := "Unknown"
+		if rq.Has("error_description") {
+			msg = rq.Get("error_description")
+		}
+		log.Printf("Exchange failed for the following reason: %s", msg)
+		w.WriteHeader(http.StatusUnauthorized)
+		srv.unauthHandler(w, r)
+		return
+	}
+
+	http.Redirect(w, r, "/?u=" + rq.Get("access_token"), http.StatusSeeOther)
 }
 
 func (srv *server) userHandler(w http.ResponseWriter, r *http.Request) {
