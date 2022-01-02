@@ -46,3 +46,20 @@ func request(token, method, url string) (*http.Response, error) {
 
 	return resp, nil
 }
+
+func requestAndParse(token, method, url string) (*http.Response, string) {
+	resp, err := request(token, method, url)
+	if err != nil {
+		log.Printf("Unable to make request: %v", err)
+		return nil, ""
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
+	if err != nil {
+		log.Printf("Unable to read response body: %v", err)
+		return resp, ""
+	}
+
+	return resp, string(body)
+}
