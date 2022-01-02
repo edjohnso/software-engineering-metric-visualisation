@@ -73,21 +73,12 @@ func (srv *server) setupHTTPServer(address string) error {
 func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
 	code := mux.Vars(r)["code"]
 
-	req, err := http.NewRequest(
-		http.MethodPost,
+	resp, err := request(
+		"", http.MethodPost,
 		"https://github.com/login/oauth/access_token" +
 			"?client_id=" + srv.clientID +
 			"&client_secret=" + srv.clientSecret +
-			"&code=" + code,
-		nil)
-	if err != nil {
-		log.Printf("Unable to create exchange request: %v", err)
-		srv.errorResponse(w, http.StatusInternalServerError)
-		return
-	}
-
-	var client http.Client
-	resp, err := client.Do(req)
+			"&code=" + code)
 	if err != nil {
 		log.Printf("Unable to exchange authentication code for access token: %v", err)
 		srv.errorResponse(w, http.StatusBadGateway)
@@ -123,18 +114,8 @@ func (srv *server) oauthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *server) userHandler(w http.ResponseWriter, r *http.Request) {
-	token := mux.Vars(r)["token"]
 
-	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/user", nil)
-	if err != nil {
-		log.Printf("Unable to create exchange request: %v", err)
-		srv.errorResponse(w, http.StatusInternalServerError)
-		return
-	}
-	req.Header.Add("Authorization", "token " + token)
-
-	var client http.Client
-	resp, err := client.Do(req)
+	resp, err := request(mux.Vars(r)["token"], http.MethodGet, "https://api.github.com/user")
 	if err != nil {
 		log.Printf("Unable to make API request: %v", err)
 		srv.errorResponse(w, http.StatusBadGateway)
