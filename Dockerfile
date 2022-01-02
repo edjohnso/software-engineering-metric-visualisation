@@ -1,7 +1,7 @@
 # Build
 FROM golang:latest AS build
 WORKDIR /build
-COPY go.mod go.mod
+COPY go.mod go.sum .
 RUN go mod download
 COPY cmd cmd
 COPY pkg pkg
