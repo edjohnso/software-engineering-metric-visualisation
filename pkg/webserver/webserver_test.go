@@ -27,22 +27,32 @@ func TestStart(t *testing.T) {
 		}
 	}
 
-	ok := false
-	go func() {
-		time.Sleep(time.Millisecond * 100)
-		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
-		time.Sleep(time.Millisecond * 100)
-		if !ok {
-			fmt.Printf("--- FAIL: Server failed to shutdown after interrupt signal\n\n")
-			os.Exit(1)
-		}
-	}()
+	testCases := []struct { name string; address string; pattern string; errorExpected bool } {
+		{ "Invalid address", "foo", "*.html", true },
+		{ "Missing templates", ":8080", "none", true },
+		{ "Valid", ":8080", "*.html", false },
+	}
 
-	err := Start(":8080", filepath.Join(dir, "*.html"))
-	ok = true
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			ok := false
+			go func() {
+				time.Sleep(time.Millisecond * 100)
+				syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+				time.Sleep(time.Millisecond * 100)
+				if !ok {
+					fmt.Printf("--- FAIL: Server failed to shutdown after interrupt signal\n\n")
+					os.Exit(1)
+				}
+			}()
 
-	if err != nil {
-		t.Errorf("Server returned unexpected error: %v", err)
+			err := Start(testCase.address, filepath.Join(dir, testCase.pattern))
+			ok = true
+
+			if (err != nil) != testCase.errorExpected {
+				t.Errorf("Expected an error: %t - Actual error: %v", testCase.errorExpected, err)
+			}
+		})
 	}
 }
 
