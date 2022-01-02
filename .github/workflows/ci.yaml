@@ -28,4 +28,5 @@ jobs:
       env:
         GHO_CLIENT_ID: ${{secrets.GHO_CLIENT_ID}}
         GHO_CLIENT_SECRET: ${{secrets.GHO_CLIENT_SECRET}}
+        GHO_PAT: ${{secrets.GHO_PAT}}
       run: go test ./pkg/webserver -v
