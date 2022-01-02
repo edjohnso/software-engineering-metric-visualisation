@@ -79,10 +79,12 @@ func (srv *server) unauthHandler(w http.ResponseWriter, r *http.Request) {
 func (srv *server) executeTemplate(w http.ResponseWriter, name string, data interface{}) {
 	if err := srv.templates.ExecuteTemplate(w, name, data); err != nil {
 		log.Printf("Failed to execute '%s' template: %v", name, err)
-		code := http.StatusInternalServerError
-		w.WriteHeader(code)
-		srv.executeTemplate(
-			w, "error.html",
-			struct { Code int; Message string } { code, http.StatusText(code) })
+		srv.errorResponse(w, http.StatusInternalServerError)
 	}
+}
+
+func (srv *server) errorResponse(w http.ResponseWriter, status int) {
+	w.WriteHeader(status)
+	msg := http.StatusText(status)
+	srv.executeTemplate(w, "error.html", struct { Code int; Message string } { status, msg })
 }
