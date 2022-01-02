@@ -83,6 +83,49 @@ func TestRequestCaching(t *testing.T) {
 	}
 }
 
+func TestRequestAndParse(t *testing.T) {
+	testCases := []struct { name string; url string; status int; body string; handler func(w http.ResponseWriter, r *http.Request) } {
+		{
+			"Bad request", "xxx", 0, "",
+			func(w http.ResponseWriter, r *http.Request) {},
+		},
+		{
+			"Error response", "/", http.StatusNotFound, "error",
+			func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+				w.Write([]byte("error"))
+			},
+		},
+		{
+			"OK response", "/", http.StatusOK, "hello",
+			func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("hello"))
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(testCase.handler))
+			defer srv.Close()
+			resp, body := requestAndParse("", http.MethodGet, srv.URL + testCase.url)
+			if resp == nil {
+				if testCase.status != 0 {
+					t.Errorf("Request failed unexpectedly")
+				}
+			} else {
+				if resp.StatusCode != testCase.status {
+					t.Errorf("Expected status: %d - Actual status: %d", testCase.status, resp.StatusCode)
+				}
+				if strings.TrimSpace(body) != testCase.body {
+					t.Errorf("Expected response: %s - Actual response: %s", testCase.body, body)
+				}
+			}
+		})
+	}
+}
+
 func assertResponse(t *testing.T, r *http.Response, status int, body string) {
 	if r.StatusCode != status {
 		t.Errorf("Expected status: %d - Actual status: %d", status, r.StatusCode)
