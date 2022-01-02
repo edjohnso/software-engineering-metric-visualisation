@@ -48,6 +48,41 @@ func TestRequestHandling(t *testing.T) {
 	}
 }
 
+func TestRequestCaching(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if etag := r.Header.Get("If-None-Match"); etag == "" {
+			w.Header().Set("etag", "xyz")
+			w.Write([]byte("abc"))
+		} else {
+			w.WriteHeader(http.StatusNotModified)
+		}
+	}))
+	defer srv.Close()
+
+	testCases := []struct { name string; token string; method string; url string; status int; body string } {
+		{ "Request 1",          "",    http.MethodGet,  "/",    http.StatusOK,          "abc" },
+		{ "Request 2",          "",    http.MethodGet,  "/",    http.StatusNotModified, "abc" },
+		{ "Different Token 1",  "123", http.MethodGet,  "/",    http.StatusOK,          "abc" },
+		{ "Different Token 2",  "123", http.MethodGet,  "/",    http.StatusNotModified, "abc" },
+		{ "Different Method 1", "",    http.MethodPost, "/",    http.StatusOK,          "abc" },
+		{ "Different Method 2", "",    http.MethodPost, "/",    http.StatusNotModified, "abc" },
+		{ "Different URL 1",    "",    http.MethodGet,  "/foo", http.StatusOK,          "abc" },
+		{ "Different URL 2",    "",    http.MethodGet,  "/foo", http.StatusNotModified, "abc" },
+		{ "Original request",   "",    http.MethodGet,  "/",    http.StatusNotModified, "abc" },
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			resp, err := request(testCase.token, testCase.method, srv.URL + testCase.url);
+			if err != nil {
+				t.Errorf("An unexpected error occurred: %v", err)
+			} else {
+				assertResponse(t, resp, testCase.status, testCase.body)
+			}
+		})
+	}
+}
+
 func assertResponse(t *testing.T, r *http.Response, status int, body string) {
 	if r.StatusCode != status {
 		t.Errorf("Expected status: %d - Actual status: %d", status, r.StatusCode)
