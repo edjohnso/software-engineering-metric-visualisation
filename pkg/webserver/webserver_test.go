@@ -41,7 +41,7 @@ func TestStart(t *testing.T) {
 	err := Start(":8080", filepath.Join(dir, "*.html"))
 	ok = true
 
-	if err != http.ErrServerClosed {
+	if err != nil {
 		t.Errorf("Server returned unexpected error: %v", err)
 	}
 }
