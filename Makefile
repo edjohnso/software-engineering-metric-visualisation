@@ -9,8 +9,10 @@ build: bin/$(TARGET)
 
 .PHONY: check
 check:
+	@echo -e "\n# Running go vet..."
+	@go vet ./cmd/$(TARGET)
 	@echo -e "\n# Running unit tests..."
-	@go test -cover ./pkg/$(TARGET)
+	@env $$(cat $(SECRETS) | xargs) go test -cover ./pkg/$(TARGET)
 
 .PHONY: run
 run: all
