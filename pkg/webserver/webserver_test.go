@@ -2,13 +2,45 @@ package webserver
 
 import (
 	"testing"
+	"net/http"
 	"path/filepath"
 	"os"
+	"syscall"
+	"time"
+	"fmt"
 )
 
 const loginHTML = `<p>login page!</p>`
 const userHTML = `<p>user page!</p>`
 const errorHTML = `<p>error page!</p>`
+
+func TestStart(t *testing.T) {
+	dir := t.TempDir()
+	files := map[string]string { "login.html": loginHTML, "user.html": userHTML, "error.html": errorHTML }
+	for file, content := range files {
+		if err := os.WriteFile(filepath.Join(dir, file), []byte(content), os.ModePerm); err != nil {
+			t.Fatalf("Unable to create %s file: %v", file, err)
+		}
+	}
+
+	ok := false
+	go func() {
+		time.Sleep(time.Millisecond * 100)
+		syscall.Kill(syscall.Getpid(), syscall.SIGINT)
+		time.Sleep(time.Millisecond * 100)
+		if !ok {
+			fmt.Printf("--- FAIL: Server failed to shutdown after interrupt signal\n\n")
+			os.Exit(1)
+		}
+	}()
+
+	err := Start(":8080", filepath.Join(dir, "*.html"))
+	ok = true
+
+	if err != http.ErrServerClosed {
+		t.Errorf("Server returned unexpected error: %v", err)
+	}
+}
 
 func TestLoadSecrets(t *testing.T) {
 	testCases := []struct { name string; clientID string; clientSecret string; errorExpected bool } {
