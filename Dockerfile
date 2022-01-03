@@ -21,4 +21,4 @@ COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /build/webserver .
 COPY web .
 EXPOSE 80
-ENTRYPOINT ["/webserver", "80", "./templates/*.html"]
+ENTRYPOINT ["/webserver", "80", "./public", "./templates/*.html", "cache.gz"]

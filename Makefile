@@ -1,5 +1,5 @@
 TARGET=webserver
-PORT=8080
+PORT=80
 
 export GHO_CLIENT_ID
 export GHO_CLIENT_SECRET
@@ -21,7 +21,7 @@ check:
 .PHONY: run
 run: all
 	@echo -e "\n# Running $(TARGET)..."
-	./bin/$(TARGET) $(PORT) "./web/templates/*.html"
+	./bin/$(TARGET) $(PORT) "./web/public" "./web/templates/*.html" "cache.gz"
 
 .PHONY: clean
 clean:
