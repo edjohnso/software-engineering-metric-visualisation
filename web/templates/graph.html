@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+	<head>
+
+		<title>Torvalds Number</title>
+		<link rel="stylesheet" href="/stylesheet.css">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	</head>
+	<body>
+
+		<a
+			style="position: absolute; z-index: 4"
+			class="link-button"
+			onclick='document.cookie = encodeURIComponent("gho") + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT"; location.reload()'
+			href="#">
+			Logout
+		</a>
+
+		<h1 id="titlemessage"></h1>
+
+		<p id="above-bottom-buttons">Connecting...</p>
+		<div class="bottom-buttons">
+			<a class="link-button" id="minus">−</a>
+			<a class="link-button" id="plus">+</a>
+			<a class="link-button" id="pause">⏸</a>
+			<a class="link-button" id="continue">▶</a>
+			<p style="display: inline; color: #eeeeee; white-space: nowrap;">Degree of Separation: <span style="color: white; font-weight: bold" id="depth">-</span></p>
+			<p style="display: inline; color: #eeeeee; white-space: nowrap;">| Graph Depth: <span style="color: white; font-weight: bold" id="maxdepth">-</span></p>
+		</div>
+
+		<div class="background"></div>
+		<canvas id="graphcanvas"><p>Failed to load graphics</p></canvas>
+		<script type="module" src="graph.js"></script>
+	</body>
+</html>
