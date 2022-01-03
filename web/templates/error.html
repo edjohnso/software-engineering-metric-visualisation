@@ -1,15 +1,25 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>Error - Torvalds Number</title>
-		<meta name="description" content="Calculate your Torvalds Number here!">
+		<title>{{.Code}} - Torvalds Number</title>
 		<meta name="robots" content="noindex">
-		<!--<link rel="stylesheet" href="/css/core.css">-->
-		<!--<link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png">-->
-		<!--<link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png">-->
+		<link rel="stylesheet" href="/stylesheet.css">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 		<script>/* Chrome bug 332189 workaround */</script>
 	</head>
 	<body>
-		<p>error!</p>
+		<div class="signin-panel">
+			<h1>Error {{.Code}}</h1>
+			<p>{{.Message}}</p>
+			<p>Apologies, but unfortunately something has gone wrong!</p>
+			<div style="text-align: center">
+				<a onclick="history.back()" href="#"><div style="display: inline; width: 30%" class="signin-button"><span>Go Back</span></div></a>
+				<a onclick='document.cookie = encodeURIComponent("gho") + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT"; location.reload()' href="#">
+					<div style="display: inline; width: 30%" class="signin-button"><span>Logout</span></div>
+				</a>
+			</div>
+		</div>
+		<div class="background"></div>
 	</body>
 </html>
