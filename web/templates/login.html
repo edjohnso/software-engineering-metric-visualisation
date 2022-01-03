@@ -2,16 +2,45 @@
 <html lang="en">
 	<head>
 		<title>Torvalds Number</title>
-		<meta name="description" content="Calculate your Torvalds Number here!">
-		<!--<link rel="stylesheet" href="/css/core.css">-->
-		<!--<link rel="icon" type="image/png" sizes="32x32" href="/icon/favicon-32x32.png">-->
-		<!--<link rel="icon" type="image/png" sizes="16x16" href="/icon/favicon-16x16.png">-->
+		<link rel="stylesheet" href="/stylesheet.css">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 		<script>/* Chrome bug 332189 workaround */</script>
 	</head>
 	<body>
-		<p>hello</p>
-		<a href="https://github.com/login/oauth/authorize?client_id={{.ClientID}}">
-			login with github
-		</a>
+		<div class="signin-panel">
+			<h1>Torvalds Number</h1>
+			<p>This is simple project to demonstrate accessing and visualising data from the GitHub API.</p>
+			<p>
+				I chose to invent my own software engineering metric to measure and visualise: The number of repositories between open-source developers.
+				If someone else owns a repository that you have contributed to, then I deem you a collaborator with the other individual. If the other individual has
+				then contributed to the repository of a third person, then I deem them to be a collaborator with the third person and you to have a Torvalds Number of 2 with the
+				third person. As such, this metric counts the distance in collaboration between individuals. Additionally, trivial metrics can be compared between collaborators.
+				I was hoping to spend more time on these traditional metrics so I could try look for some correlation.
+				Maybe there's a relationship between proximity in terms of collaboration with Linus Torvalds and software engineering productivity? Who knows? Well, this tool can at least help with that question.
+			</p>
+			<p>
+				Use the mouse to examine any distant collaborators you find. You can click on the buttons in the bottom-left corner to control searching for more collaborators and drawing deeper nodes on the graph.
+				The arrow keys can be used to pan the viewpoint around. I assume if you've gotten this far, you don't need help setting up the Go webserver and registering a GitHub OAuth App. Check out the README.md for
+				more information on that.
+			<p>
+			<hr />
+			<p>
+				I implemented this project with a custom Go webserver and pure JavaScript with the HTML Canvas element. I mainly focused on perfecting my webserver with
+				API request caching and collaborators graph generation. I have learned a lot about different areas of web development for this full-stack project. I also
+				spent a decent amount of time experimenting with development tools such as Docker and the suit of Go testing tools. I spent a while learning about WebSockets
+				so that my Go backend webserver could communicate with the JavaScript frontend while new collaborators were searched for. This also allows the two buttons to
+				control this search from the frontend.
+			</p>
+			<p>
+				The name is a reference to <a href="https://en.wikipedia.org/wiki/Six_Degrees_of_Kevin_Bacon">Bacon numbers</a>, which is related to the concept of <a href="https://en.wikipedia.org/wiki/Six_degrees_of_separation">"six degress of separation"</a>.
+				As this project is about examining global online collaboration and Git, I decided to name it after Linus Torvalds. I had hoped to implement a feature to compute your GitHub Torvalds Number in this project but it proved pointless due to the shear number of API requests required to get anywhere.
+			</p>
+			<p>Licensed under GPLv3</p>
+			<a href="https://github.com/login/oauth/authorize?client_id={{.ClientID}}">
+					<div class="signin-button"><span>Sign In With GitHub<img src="/github.png"></span></div>
+			</a>
+		</div>
+		<div class="background"></div>
 	</body>
 </html>
