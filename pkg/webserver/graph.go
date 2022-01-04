@@ -37,7 +37,10 @@ func (srv *server) addCollaborators(w http.ResponseWriter, auth, username string
 
 	// Find users repositories
 	resp := srv.requestOK(w, auth, http.MethodGet, "https://api.github.com/users/" + username + "/repos")
-	if (resp.Status >= 400) { log.Printf("GET /users/%s/repos returned %d", username, resp.Status) }
+	if (resp.Status >= 400) {
+		srv.errorResponse(w, resp.Status)
+		log.Printf("GET /users/%s/repos returned %d", username, resp.Status)
+	}
 
 	var repos reposFormat
 	json.Unmarshal(resp.Body, &repos)
