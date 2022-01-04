@@ -2,64 +2,74 @@ package webserver
 
 import (
 	"io"
-	"log"
-	"bytes"
 	"net/http"
+	"time"
 )
 
-type cacheEntry struct {
-	ETag string
-	Response []byte
+type response struct {
+	Status int
+	Header http.Header
+	Body []byte
 }
 
-var cache = map[string]cacheEntry{}
+type requestCacheEntry struct {
+	Time time.Time
+	ETag string
+	Response response
+}
 
-func request(token, method, url string) (*http.Response, error) {
-	log.Printf("Sending request: %s %s", method, url)
-	req, err := http.NewRequest(method, url, nil)
-	if err != nil { return nil, err }
-	if token != "" {
-		req.Header.Add("Authorization", "token " + token)
-	}
+func (srv *server) request(auth, method, url string) (response, error) {
+	srv.requestMutex.Lock()
+	defer srv.requestMutex.Unlock()
 
-	cacheEntryKey := token + ":" + method + ":" + url
-	if entry, ok := cache[cacheEntryKey]; ok {
-		req.Header.Add("If-None-Match", entry.ETag)
-	}
+	now := time.Now()
+	key := auth + ":" + method + ":" + url
+	etag := ""
 
-	var client http.Client
-	resp, err := client.Do(req)
-	if err != nil { return nil, err }
-
-	if resp.StatusCode == http.StatusNotModified {
-		resp.Body = io.NopCloser(bytes.NewBuffer(cache[cacheEntryKey].Response))
-		log.Printf("Using cached response.")
-	} else {
-		if etag := resp.Header.Get("etag"); etag != "" {
-			body, err := io.ReadAll(resp.Body)
-			if err != nil { return nil, err }
-			cache[cacheEntryKey] = cacheEntry { etag, body }
-			resp.Body = io.NopCloser(bytes.NewBuffer(body))
-			log.Printf("Response cached.")
+	// Check if the request is cached
+	if entry, ok := srv.requestCache[key]; ok {
+		if now.Sub(entry.Time) > 24 * time.Hour { // TODO: check this works
+			etag = entry.ETag
+		} else {
+			r := entry.Response
+			r.Header = r.Header.Clone()
+			return r, nil
 		}
 	}
 
-	return resp, nil
+	// Otherwise, create a new request
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil { return response{}, err }
+	// Add an auth token if provided
+	if auth != "" { req.Header.Add("Authorization", "token " + auth) }
+	// Add the ETag if the cached response is due a check
+	if etag != "" { req.Header.Add("If-None-Match", etag) }
+	// Send the request
+	var client http.Client
+	resp, err := client.Do(req)
+	if err != nil { return response{}, err }
+
+	// If cached request is not modified, use the cached response
+	var r response
+	if resp.StatusCode == http.StatusNotModified {
+		r = srv.requestCache[key].Response
+		r.Header = r.Header.Clone()
+	} else {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil { return response{}, err }
+		r = response { resp.StatusCode, resp.Header, body }
+		etag = resp.Header.Get("etag")
+	}
+
+	// Cache the request and return a copy
+	srv.requestCache[key] = requestCacheEntry { now, etag, r }
+	r = srv.requestCache[key].Response
+	r.Header = r.Header.Clone()
+	return r, nil
 }
 
-func requestAndParse(token, method, url string) (*http.Response, string) {
-	resp, err := request(token, method, url)
-	if err != nil {
-		log.Printf("Unable to make request: %v", err)
-		return nil, ""
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	if err != nil {
-		log.Printf("Unable to read response body: %v", err)
-		return resp, ""
-	}
-
-	return resp, string(body)
+func (srv *server) requestOK(w http.ResponseWriter, auth, method, url string) response {
+	resp, err := srv.request(auth, method, url)
+	if err != nil { srv.errorResponse(w, http.StatusInternalServerError) }
+	return resp
 }
