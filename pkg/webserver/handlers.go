@@ -30,12 +30,20 @@ func (srv *server) wsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get auth token from cookie
 	authCookie, err := r.Cookie("gho")
-	if err != nil { log.Printf("Failed to get gho cookie: %v", err); return }
+	if err != nil {
+		log.Printf("Failed to get gho cookie: %v", err)
+		srv.errorResponse(w, http.StatusUnauthorized)
+		return
+	}
 	auth := authCookie.Value
 
 	// Attempt to get this users details with their auth token
 	resp := srv.requestOK(w, auth, http.MethodGet, "https://api.github.com/user")
-	if (resp.Status >= 400) { log.Printf("GET /user returned %d", resp.Status); return }
+	if (resp.Status >= 400) {
+		log.Printf("GET /user returned %d", resp.Status)
+		srv.errorResponse(w, http.StatusUnauthorized)
+		return
+	}
 	var user userFormat
 	json.Unmarshal(resp.Body, &user)
 
@@ -47,7 +55,11 @@ func (srv *server) wsHandler(w http.ResponseWriter, r *http.Request) {
 	// Upgrade HTTP connection to WS
 	var upgrader = websocket.Upgrader{}
 	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil { log.Printf("WS upgrade error: %v", err); return }
+	if err != nil {
+		log.Printf("WS upgrade error: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	defer ws.Close()
 
 	rootData := rootFormat { user }
