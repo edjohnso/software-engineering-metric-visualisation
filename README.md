@@ -13,9 +13,8 @@ Maybe there's a relationship between proximity in terms of collaboration with Li
 
 I implemented this project with a custom Go webserver and pure JavaScript with the HTML Canvas element. I mainly focused on perfecting my webserver with
 API request caching and collaborators graph generation. I have learned a lot about different areas of web development for this full-stack project. I also
-spent a decent amount of time experimenting with development tools such as Docker and the suit of Go testing tools. I spent a while learning about WebSockets
-so that my Go backend webserver could communicate with the JavaScript frontend while new collaborators were searched for. This also allows the two buttons to
-control this search from the frontend.
+spent a decent amount of time experimenting with development tools such as Docker and the suite of Go testing tools. I spent a while learning about WebSockets
+so that the Go backend webserver could send updates to the JavaScript frontend while the frontend could send commands back to the server.
 
 ![Screenshot](/.github/screenshot.png)
 
