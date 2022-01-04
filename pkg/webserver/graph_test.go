@@ -10,6 +10,9 @@ import (
 func TestAddCollaborators(t *testing.T) {
 
 	pat := os.Getenv("GHO_PAT")
+	if pat == "" {
+		t.Fatalf("GHO_PAT environment variable not set")
+	}
 
 	t.Run("Attempt to add collaborators of invalid user", func(t *testing.T) {
 		srv, err := setupTestServer()
