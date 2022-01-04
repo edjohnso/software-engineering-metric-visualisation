@@ -104,13 +104,12 @@ func (srv *server) startCacheAutoWriter(cache string, quitChan chan bool) {
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
 	for {
+		writeCache()
 		select {
 		case <-ticker.C:
-			writeCache()
 		case <-quitChan:
-			ticker.Stop()
-			writeCache()
 			quitChan <- true
 			return
 		}
