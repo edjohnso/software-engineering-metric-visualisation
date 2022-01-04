@@ -61,7 +61,7 @@ func TestHandleWSRequest(t *testing.T) {
 	testCases := []struct { name string; token string; addCookie bool; status int; body string } {
 		{ "No access token cookie", "", false, http.StatusUnauthorized, errorHTML },
 		{ "Invalid access token", "", true, http.StatusUnauthorized, errorHTML },
-		{ "Invalid WebSocket connection", pat, true, http.StatusUnauthorized, errorHTML },
+		{ "Invalid WebSocket connection", pat, true, http.StatusBadRequest, "Bad Request" },
 		// TODO: testing Websocket connection
 	}
 
