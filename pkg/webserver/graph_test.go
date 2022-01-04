@@ -5,9 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"sync"
-	"strings"
-	"html/template"
 )
 
 func TestAddCollaborators(t *testing.T) {
@@ -54,26 +51,4 @@ func TestCheckForTarget(t *testing.T) {
 	srv, err := setupTestServer()
 	if err != nil { t.Fatalf("Failed to setup test server: %v", err) }
 	srv.checkForTarget("", "", nil)
-}
-
-func setupTestServer() (*server, error) {
-	var srv server
-	var err error
-	if srv.clientID, srv.clientSecret, err = loadSecrets(); err != nil { return nil, err }
-	if srv.templates, err = template.New("login.html").Parse(loginHTML); err != nil { return &srv, err }
-	if srv.templates, err = srv.templates.New("graph.html").Parse(graphHTML); err != nil { return &srv, err }
-	if srv.templates, err = srv.templates.New("error.html").Parse(errorHTML); err != nil { return &srv, err }
-	srv.requestCache = map[string]requestCacheEntry{}
-	srv.collabGraph = map[string]userEntry{}
-	srv.requestMutex = &sync.Mutex{}
-	return &srv, nil
-}
-
-func assertResponseRecorder(t *testing.T, rr *httptest.ResponseRecorder, status int, body string) {
-	if rr.Code != status {
-		t.Errorf("Expected status: %d - Actual status: %d", status, rr.Code)
-	}
-	if strings.TrimSpace(rr.Body.String()) != body {
-		t.Errorf("Expected response: %s - Actual response: %s", body, rr.Body)
-	}
 }

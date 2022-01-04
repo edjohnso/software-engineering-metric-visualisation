@@ -9,10 +9,6 @@ import (
 	"fmt"
 )
 
-const loginHTML = `<p>login page!</p>`
-const graphHTML = `<p>graph page!</p>`
-const errorHTML = `<p>error page!</p>`
-
 func TestStart(t *testing.T) {
 
 	runTest := func(address, public, templates, cache string) error {
